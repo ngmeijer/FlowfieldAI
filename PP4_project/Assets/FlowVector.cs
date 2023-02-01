@@ -9,22 +9,25 @@ using UnityEngine.UIElements;
 
 public class FlowVector : MonoBehaviour
 {
+    [Header("Properties")]
     public Vector2 Direction = Vector2.right;
     public Vector2 Position;
     public Vector2 Size;
-    public int Index;
+    public Vector2 Index;
     public int Cost = 0;
+    public int TentativeDist = 0;
+    public FlowVector PreviousCell;
+    [Space(10)]
+    public List<FlowVector> NeighbourCells = new List<FlowVector>();
 
-    public bool Visited = false;
-
+    [Header("Components")]
     [SerializeField] private BoxCollider2D _collider;
     [SerializeField] private SpriteRenderer _renderer;
     [SerializeField] private Sprite _selectedIcon;
     [SerializeField] private Sprite _directionIcon;
-
     [SerializeField] private SpriteRenderer _background;
-
-    private void Start()
+    
+    private void Awake()
     {
         float angle = Vector2.Angle(transform.rotation.eulerAngles, Direction);
         transform.Rotate(Vector3.forward, angle);
@@ -35,13 +38,23 @@ public class FlowVector : MonoBehaviour
         _renderer.sprite = _selectedIcon;
     }
 
-    public void Initialize(Vector2 pPosition, Vector2 pSize, int pIndex)
+    public void Initialize(Vector2 pPosition, Vector2 pSize, Vector2 pIndex)
     {
         Position = pPosition;
         transform.position = pPosition;
         Index = pIndex;
         Size = pSize;
         _collider.size = pSize;
+    }
+
+    public void AddNeighbour(FlowVector pNeighbourCell)
+    {
+        NeighbourCells.Add(pNeighbourCell);
+    }
+
+    public void RemoveNeighbour(FlowVector pNeighbourCell)
+    {
+        NeighbourCells.Remove(pNeighbourCell);
     }
 
     public void OnDeselectCell()
@@ -56,6 +69,7 @@ public class FlowVector : MonoBehaviour
 
     public void OnGUI()
     {
-        Handles.Label(transform.position, $"{Cost}");
+        Handles.Label(transform.position, $"{TentativeDist}");
+        Handles.Label(transform.position - new Vector3(0, 0.15f), $"{Index}");
     }
 }

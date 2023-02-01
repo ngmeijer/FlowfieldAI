@@ -48,15 +48,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Direction: {x: 1, y: 0}
+  Position: {x: 0, y: 0}
   Size: {x: 0, y: 0}
-  Index: 0
+  Index: {x: 0, y: 0}
   Cost: 0
-  Visited: 0
   _collider: {fileID: 4781002082359301542}
   _renderer: {fileID: 6142329576270660387}
   _selectedIcon: {fileID: 21300000, guid: 2cbe56f8137292146beae386e0652087, type: 3}
   _directionIcon: {fileID: 21300000, guid: b4675aa16f2c18445810533c47aa3c44, type: 3}
-  _background: {fileID: 0}
+  _background: {fileID: 5897621524120924312}
+  _neighbourIndices: []
 --- !u!61 &4781002082359301542
 BoxCollider2D:
   m_ObjectHideFlags: 0

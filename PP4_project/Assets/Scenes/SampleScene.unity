@@ -336,7 +336,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _flowVectorPrefab: {fileID: 288731121676006744, guid: c14516cfe73fc5845be51782b5a76e8f, type: 3}
-  gridSize: {x: 20, y: 20}
+  gridSize: {x: 5, y: 5}
   cellSize: 1
 --- !u!1 &2129378851
 GameObject:
@@ -350,7 +350,7 @@ GameObject:
   - component: {fileID: 2129378853}
   - component: {fileID: 2129378852}
   m_Layer: 0
-  m_Name: Square (1)
+  m_Name: Obstacle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

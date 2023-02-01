@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,8 +12,12 @@ public class FlowFieldGenerator : MonoBehaviour
     [SerializeField] private FlowVector _flowVectorPrefab;
     [SerializeField] private Vector2Int gridSize;
     [SerializeField] private float cellSize;
-    private List<FlowVector> vectors = new List<FlowVector>();
-    private FlowVector _lastCellClicked;
+    private FlowVector _currentCell;
+
+    private List<FlowVector> _openCells = new List<FlowVector>();
+    private List<FlowVector> _visitedCells = new List<FlowVector>();
+
+    private Dictionary<Vector2, FlowVector> _cellsInGrid = new Dictionary<Vector2, FlowVector>();
 
     private Camera _cam;
     
@@ -30,33 +35,83 @@ public class FlowFieldGenerator : MonoBehaviour
 
     private void GenerateGrid()
     {
-        int index = 0;
+        Vector2 index = Vector2.zero;
         for (float x = 0; x < gridSize.x; x += cellSize)
         {
             for (float y = 0; y < gridSize.y; y += cellSize)
             {
                 Vector2 position = new Vector2(x * cellSize + (cellSize / 2), y * cellSize + (cellSize / 2));
                 FlowVector newVector = Instantiate(_flowVectorPrefab, this.transform);
+                index = new Vector2(x, y);
+                newVector.transform.name = $"Cell {index}";
                 Vector2 size = new Vector2(cellSize, cellSize);
-                index++;
                 
+
                 newVector.Initialize(position, size, index);
                 newVector.Cost = CheckCellTraversability(position, size);
-                vectors.Add(newVector);
+                _cellsInGrid.Add(index, newVector);
+            }
+        }
+
+        foreach (var cell in _cellsInGrid)
+        {
+            Vector2 currentIndex = cell.Value.Index;
+            //North
+            Vector2 northIndex = new Vector2(currentIndex.x, currentIndex.y + 1);
+            if (_cellsInGrid.TryGetValue(northIndex, out FlowVector northCell))
+                cell.Value.AddNeighbour(northCell);
+            //East
+            Vector2 eastIndex = new Vector2(currentIndex.x + 1, currentIndex.y);
+            if (_cellsInGrid.TryGetValue(eastIndex, out FlowVector eastCell))
+                cell.Value.AddNeighbour(eastCell);
+
+            //South
+            Vector2 southIndex = new Vector2(currentIndex.x, currentIndex.y - 1);
+            if (_cellsInGrid.TryGetValue(southIndex, out FlowVector southCell))
+                cell.Value.AddNeighbour(southCell);
+
+            //West
+            Vector2 westIndex = new Vector2(currentIndex.x - 1, currentIndex.y);
+            if (_cellsInGrid.TryGetValue(westIndex, out FlowVector westCell))
+                cell.Value.AddNeighbour(westCell);
+        }
+    }
+
+    private void GenerateIntegrationField(FlowVector pCurrentCell, int pLastTentativeDist)
+    {
+        _openCells.Add(pCurrentCell);
+        while (_openCells.Count != 0)
+        {
+            FlowVector selectedCell = _openCells.First();
+
+            foreach (var neighbour in selectedCell.NeighbourCells)
+            {
+                //Cell is unpassable (wall)
+                if (selectedCell.Cost == MAX_COST) continue;
+
+                if (_visitedCells.Contains(selectedCell))
+                {
+                    //if(dist.n > dist.c + a)
+                    //dist.n = dist.c + a
+                    continue;
+                }
+
+                //dist.n = dist.c + a
+                //openCells.add(neighbour)
             }
         }
     }
 
-    private void GenerateIntegrationField()
+    private int CalculateCost(Vector2 pCurrentCell, Vector2 pTargetCell)
     {
-        ResetIntegrationValues();
+        return (int)Vector2.Distance(pCurrentCell, pTargetCell);
     }
 
     private void ResetIntegrationValues()
     {
-        foreach (FlowVector vector in vectors)
+        foreach (KeyValuePair<Vector2, FlowVector> vector in _cellsInGrid)
         {
-            vector.Cost = CheckCellTraversability(vector.Position, vector.Size);
+            vector.Value.Cost = CheckCellTraversability(vector.Value.Position, vector.Value.Size);
         }
     }
 
@@ -86,12 +141,12 @@ public class FlowFieldGenerator : MonoBehaviour
 
             if (hit.transform.TryGetComponent(out FlowVector vector))
             {
-                if (_lastCellClicked != null) _lastCellClicked.OnDeselectCell();
+                if (_currentCell != null) _currentCell.OnDeselectCell();
                 
-                _lastCellClicked = vector;
+                _currentCell = vector;
                 vector.OnSelectCell();
                 
-                GenerateIntegrationField();
+                GenerateIntegrationField(_currentCell, 0);
                 GenerateFlowField();
             }
         }
