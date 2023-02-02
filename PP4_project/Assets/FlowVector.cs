@@ -13,9 +13,7 @@ public class FlowVector : MonoBehaviour
     public Vector2 Direction = Vector2.right;
     public Vector2 Position;
     public Vector2 Size;
-    public Vector2 Index;
-    public int Cost = 0;
-    public int TentativeDist = 0;
+    public int Cost = int.MaxValue;
     public FlowVector PreviousCell;
     [Space(10)]
     public List<FlowVector> NeighbourCells = new List<FlowVector>();
@@ -38,13 +36,15 @@ public class FlowVector : MonoBehaviour
         _renderer.sprite = _selectedIcon;
     }
 
-    public void Initialize(Vector2 pPosition, Vector2 pSize, Vector2 pIndex)
+    public void Initialize(Vector2 pPosition, Vector2 pSize, int pCost)
     {
         Position = pPosition;
         transform.position = pPosition;
-        Index = pIndex;
+        Cost = pCost;
         Size = pSize;
         _collider.size = pSize;
+
+        if (Cost == FlowFieldGenerator.MAX_COST) _renderer.sprite = null;
     }
 
     public void AddNeighbour(FlowVector pNeighbourCell)
@@ -69,7 +69,7 @@ public class FlowVector : MonoBehaviour
 
     public void OnGUI()
     {
-        Handles.Label(transform.position, $"{TentativeDist}");
-        Handles.Label(transform.position - new Vector3(0, 0.15f), $"{Index}");
+        Handles.Label(transform.position, $"{Cost}");
+        Handles.Label(transform.position - new Vector3(0, 0.15f), $"{Position}");
     }
 }

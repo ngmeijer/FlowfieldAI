@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 4781002082359301542}
   m_Layer: 0
   m_Name: FlowVector
-  m_TagString: Untagged
+  m_TagString: Cell
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -50,14 +50,14 @@ MonoBehaviour:
   Direction: {x: 1, y: 0}
   Position: {x: 0, y: 0}
   Size: {x: 0, y: 0}
-  Index: {x: 0, y: 0}
   Cost: 0
+  PreviousCell: {fileID: 0}
+  NeighbourCells: []
   _collider: {fileID: 4781002082359301542}
   _renderer: {fileID: 6142329576270660387}
   _selectedIcon: {fileID: 21300000, guid: 2cbe56f8137292146beae386e0652087, type: 3}
   _directionIcon: {fileID: 21300000, guid: b4675aa16f2c18445810533c47aa3c44, type: 3}
   _background: {fileID: 5897621524120924312}
-  _neighbourIndices: []
 --- !u!61 &4781002082359301542
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -109,8 +109,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 941451286287166536}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: -0.0063, y: -0.0079, z: 0}
+  m_LocalScale: {x: 0.95, y: 0.95, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 288731121676006745}
