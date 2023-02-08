@@ -16,7 +16,7 @@ GameObject:
   m_TagString: Cell
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &288731121676006745
 Transform:
@@ -53,6 +53,7 @@ MonoBehaviour:
   Cost: 0
   PreviousCell: {fileID: 0}
   NeighbourCells: []
+  Visited: 0
   _collider: {fileID: 4781002082359301542}
   _renderer: {fileID: 6142329576270660387}
   _selectedIcon: {fileID: 21300000, guid: 2cbe56f8137292146beae386e0652087, type: 3}
@@ -99,7 +100,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &3692357328304547659
 Transform:
@@ -183,7 +184,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &2119352159763977588
 Transform:

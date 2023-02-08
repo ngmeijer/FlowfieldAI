@@ -17,6 +17,7 @@ public class FlowVector : MonoBehaviour
     public FlowVector PreviousCell;
     [Space(10)]
     public List<FlowVector> NeighbourCells = new List<FlowVector>();
+    public bool Visited;
 
     [Header("Components")]
     [SerializeField] private BoxCollider2D _collider;

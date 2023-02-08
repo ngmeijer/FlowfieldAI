@@ -81,27 +81,29 @@ public class FlowFieldGenerator : MonoBehaviour
         {
             FlowVector selectedCell = _openCells.Peek();
             _openCells.Dequeue();
+            _visitedCells.Add(selectedCell);
             
             foreach (var neighbour in selectedCell.NeighbourCells)
             {
                 //Cell is unpassable (wall)
                 if (neighbour.Cost == MAX_COST) continue;
                 
-                Debug.Log(neighbour.Position);
-                
-                //Already visited cell
-                if (_visitedCells.Contains(neighbour))
+                //Cell is already visited
+                if (neighbour.Visited) continue;
+                neighbour.Visited = true;
+
+                int newNeighbourDistance = selectedCell.Cost + 1;
+                Debug.Log($"New distance neighbour: {newNeighbourDistance}");
+
+                if (newNeighbourDistance < neighbour.Cost)
                 {
-                    Debug.Log($"Selected cell cost: {selectedCell.Cost}. Neighbour cost: {neighbour.Cost}");
-                    if (selectedCell.Cost + 1 < neighbour.Cost)
-                        neighbour.Cost = selectedCell.Cost + 1;
-                    continue;
+                    neighbour.Cost = newNeighbourDistance;
+                    neighbour.PreviousCell = selectedCell;
                 }
 
-                neighbour.Cost = selectedCell.Cost + 1;
-                _visitedCells.Add(neighbour);
+                Debug.Log($"Neighbour cost after check: {neighbour.Cost}");
+
                 _openCells.Enqueue(neighbour);
-                GenerateIntegrationField();
             }
         }
     }
@@ -135,7 +137,7 @@ public class FlowFieldGenerator : MonoBehaviour
             }
         }
 
-        return 0;
+        return int.MaxValue;
     }
 
     private void GenerateFlowField()
@@ -160,6 +162,7 @@ public class FlowFieldGenerator : MonoBehaviour
                 vector.OnSelectCell();
                 
                 ResetIntegrationValues();
+                _currentCell.Cost = 0;
                 _openCells.Enqueue(_currentCell);
                 GenerateIntegrationField();
                 GenerateFlowField();
