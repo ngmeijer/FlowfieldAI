@@ -252,7 +252,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _flowVectorPrefab: {fileID: 288731121676006744, guid: c14516cfe73fc5845be51782b5a76e8f, type: 3}
-  gridSize: {x: 5, y: 5}
+  gridSize: {x: 10, y: 10}
   cellSize: 1
 --- !u!1 &2129378851
 GameObject:

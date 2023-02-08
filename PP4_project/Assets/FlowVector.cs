@@ -48,6 +48,19 @@ public class FlowVector : MonoBehaviour
         if (Cost == FlowFieldGenerator.MAX_COST) _renderer.sprite = null;
     }
 
+    public void AssignHeatIntensity()
+    {
+        float redValue = 1f / Cost;
+        Debug.Log($"Cost: {Cost}. Red value: {redValue}");
+        _background.color = new Color(redValue,0,0,1);
+    }
+
+    public void ResetCell()
+    {
+        Visited = false;
+        _background.color = new Color(0, 0, 0, 0.5f);
+    }
+
     public void AddNeighbour(FlowVector pNeighbourCell)
     {
         NeighbourCells.Add(pNeighbourCell);
@@ -63,13 +76,9 @@ public class FlowVector : MonoBehaviour
         _renderer.sprite = _directionIcon;
     }
 
-    public void SetVisited()
-    {
-        _background.color = new Color(255, 0, 0, 128);
-    }
-
     public void OnGUI()
     {
+        Handles.color = Color.white;
         Handles.Label(transform.position, $"{Cost}");
         Handles.Label(transform.position - new Vector3(0, 0.15f), $"{Position}");
     }

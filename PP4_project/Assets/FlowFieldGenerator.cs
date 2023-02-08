@@ -100,8 +100,8 @@ public class FlowFieldGenerator : MonoBehaviour
                     neighbour.Cost = newNeighbourDistance;
                     neighbour.PreviousCell = selectedCell;
                 }
-
-                Debug.Log($"Neighbour cost after check: {neighbour.Cost}");
+                
+                neighbour.AssignHeatIntensity();
 
                 _openCells.Enqueue(neighbour);
             }
@@ -115,6 +115,7 @@ public class FlowFieldGenerator : MonoBehaviour
         
         foreach (KeyValuePair<Vector2, FlowVector> vector in _cellsInGrid)
         {
+            vector.Value.ResetCell();
             vector.Value.Cost = CheckCellTraversability(vector.Value.Position, vector.Value.Size);
         }
     }
