@@ -21,7 +21,7 @@ public class FlowFieldGenerator : MonoBehaviour
     private List<FlowVector> _visitedCells = new List<FlowVector>();
     private Dictionary<Vector2, FlowVector> _cellsInGrid = new Dictionary<Vector2, FlowVector>();
 
-    private void Start()
+    private void Awake()
     {
         _cam = Camera.main;
 
@@ -31,6 +31,17 @@ public class FlowFieldGenerator : MonoBehaviour
     private void Update()
     {
         CheckOnClickCell();
+    }
+
+    public Vector3 LookUpDirectionFromCell(Vector2 pAgentPosition)
+    {
+        
+        if (_cellsInGrid.ContainsKey(pAgentPosition))
+        {
+            
+        }
+        
+        return Vector3.zero;
     }
 
     private void GenerateGrid()
@@ -154,6 +165,8 @@ private void UpdateNeighbourData(FlowVector selectedCell, FlowVector neighbour)
             {
                 if (foundCollider.CompareTag("Cell")) 
                     continue;
+                if (foundCollider.CompareTag("Agent"))
+                    continue;
                 return MAX_COST;
             }
         }
@@ -165,33 +178,48 @@ private void UpdateNeighbourData(FlowVector selectedCell, FlowVector neighbour)
     {
         foreach (var currentLoopingCell in _cellsInGrid)
         {
-            FlowVector currentBestNeighbour = null;
-            if (currentLoopingCell.Value.NeighbourCells.Contains(_currentCell))
-            {
-                Debug.Log("Found neighbour of target node.");
-            }
-            foreach (var neighbour in currentLoopingCell.Value.NeighbourCells)
-            {
-                if (currentBestNeighbour == null)
-                {
-                    currentBestNeighbour = neighbour;
-                    continue;
-                }
-                
-                Debug.Log($"Cost of neighbour: {neighbour.Cost}");
-
-                if (neighbour.Cost < currentBestNeighbour.Cost)
-                {
-                    Debug.Log($"Found new best neighbour of node {currentLoopingCell.Value.Position}: {neighbour.Position}. Cost: {neighbour.Cost}");
-                    currentBestNeighbour = neighbour;
-                }
-            }
-            
-            Vector3 targetDirection = currentBestNeighbour.transform.position - currentLoopingCell.Value.transform.position;
-            float angle = Mathf.Atan2(targetDirection.y, targetDirection.x) * Mathf.Rad2Deg + RotationMultiplier;
-            Quaternion newRot = Quaternion.AngleAxis(angle, Vector3.forward);
-            currentLoopingCell.Value.RotateTowards(newRot, currentBestNeighbour);
+            FlowVector currentBestNeighbour = FindBestNeighbour(currentLoopingCell.Value);
+            Vector3 targetDirection = GetTargetDirection(currentLoopingCell.Value, currentBestNeighbour);
+            Quaternion newRotation = CalculateRotation(targetDirection);
+            RotateCellTowardsNeighbour(currentLoopingCell.Value, newRotation, currentBestNeighbour);
         }
+    }
+
+    private FlowVector FindBestNeighbour(FlowVector currentCell)
+    {
+        FlowVector currentBestNeighbour = null;
+        foreach (var neighbour in currentCell.NeighbourCells)
+        {
+            if (currentBestNeighbour == null)
+            {
+                currentBestNeighbour = neighbour;
+                continue;
+            }
+
+            if (neighbour.Cost < currentBestNeighbour.Cost)
+            {
+                currentBestNeighbour = neighbour;
+            }
+        }
+
+        return currentBestNeighbour;
+    }
+
+    
+    private Vector3 GetTargetDirection(FlowVector currentCell, FlowVector bestNeighbour)
+    {
+        return bestNeighbour.transform.position - currentCell.transform.position;
+    }
+
+    private Quaternion CalculateRotation(Vector3 targetDirection)
+    {
+        float angle = Mathf.Atan2(targetDirection.y, targetDirection.x) * Mathf.Rad2Deg + RotationMultiplier;
+        return Quaternion.AngleAxis(angle, Vector3.forward);
+    }
+
+    private void RotateCellTowardsNeighbour(FlowVector currentCell, Quaternion newRotation, FlowVector bestNeighbour)
+    {
+        currentCell.RotateTowards(newRotation, bestNeighbour);
     }
 
     private void CheckOnClickCell()
