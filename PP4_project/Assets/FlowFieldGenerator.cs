@@ -13,12 +13,14 @@ public class FlowFieldGenerator : MonoBehaviour
     [SerializeField] private FlowVector _flowVectorPrefab;
     [SerializeField] private Vector2Int gridSize;
     [SerializeField] private float cellSize;
-    
+
+    public float RotationMultiplier = 90f;
+
     private FlowVector _currentCell;
     private Queue<FlowVector> _openCells = new Queue<FlowVector>();
     private List<FlowVector> _visitedCells = new List<FlowVector>();
     private Dictionary<Vector2, FlowVector> _cellsInGrid = new Dictionary<Vector2, FlowVector>();
-    
+
     private void Start()
     {
         _cam = Camera.main;
@@ -41,12 +43,13 @@ public class FlowFieldGenerator : MonoBehaviour
             for (float y = 0; y < gridSize.y; y += cellSize)
             {
                 Vector2 position = new Vector2(x * cellSize + (cellSize / 2), y * cellSize + (cellSize / 2));
+                Vector2Int index = new Vector2Int((int)x, (int)y);
                 FlowVector newVector = Instantiate(_flowVectorPrefab, this.transform);
-                newVector.transform.name = $"Cell {position}";
-                
+                newVector.transform.name = $"Cell {index}";
+
                 int cost = CheckCellTraversability(position, size - innerOffset);
-                
-                newVector.Initialize(position, size, cost);
+
+                newVector.Initialize(index, position, size, cost);
                 _cellsInGrid.Add(position, newVector);
             }
         }
@@ -54,30 +57,35 @@ public class FlowFieldGenerator : MonoBehaviour
         foreach (var cell in _cellsInGrid)
         {
             Vector2 currentCellPosition = cell.Value.Position;
-            //North
-            Vector2 northPos = new Vector2(currentCellPosition.x, currentCellPosition.y + 1);
-            if (_cellsInGrid.TryGetValue(northPos, out FlowVector northCell))
-                cell.Value.AddNeighbour(northCell);
-            //East
-            Vector2 eastPos = new Vector2(currentCellPosition.x + 1, currentCellPosition.y);
-            if (_cellsInGrid.TryGetValue(eastPos, out FlowVector eastCell))
-                cell.Value.AddNeighbour(eastCell);
-
-            //South
-            Vector2 southPos = new Vector2(currentCellPosition.x, currentCellPosition.y - 1);
-            if (_cellsInGrid.TryGetValue(southPos, out FlowVector southCell))
-                cell.Value.AddNeighbour(southCell);
-
-            //West
-            Vector2 westPos = new Vector2(currentCellPosition.x - 1, currentCellPosition.y);
-            if (_cellsInGrid.TryGetValue(westPos, out FlowVector westCell))
-                cell.Value.AddNeighbour(westCell);
+            
+            //N
+            GetNeighbour(new Vector2(currentCellPosition.x, currentCellPosition.y + 1), cell.Value);
+            //N-E
+            GetNeighbour(new Vector2(currentCellPosition.x + 1, currentCellPosition.y + 1), cell.Value);
+            //E
+            GetNeighbour(new Vector2(currentCellPosition.x + 1, currentCellPosition.y), cell.Value);
+            //S-E
+            GetNeighbour(new Vector2(currentCellPosition.x + 1, currentCellPosition.y - 1), cell.Value);
+            //S
+            GetNeighbour(new Vector2(currentCellPosition.x, currentCellPosition.y - 1), cell.Value);
+            //S-W
+            GetNeighbour(new Vector2(currentCellPosition.x - 1, currentCellPosition.y - 1), cell.Value);
+            //W
+            GetNeighbour(new Vector2(currentCellPosition.x - 1, currentCellPosition.y), cell.Value);
+            //N-W
+            GetNeighbour(new Vector2(currentCellPosition.x - 1, currentCellPosition.y + 1), cell.Value);
         }
     }
 
-    private void GenerateIntegrationField()
+    private void GetNeighbour(Vector2 pPosition, FlowVector pCurrentCell)
     {
-        while (_openCells.Count != 0)
+        if (_cellsInGrid.TryGetValue(pPosition, out FlowVector northWestCell))
+            pCurrentCell.AddNeighbour(northWestCell);
+    }
+
+private void GenerateIntegrationField()
+    {
+        while (_openCells.Count > 0)
         {
             FlowVector selectedCell = _openCells.Peek();
             _openCells.Dequeue();
@@ -85,28 +93,40 @@ public class FlowFieldGenerator : MonoBehaviour
             
             foreach (var neighbour in selectedCell.NeighbourCells)
             {
-                //Cell is unpassable (wall)
-                if (neighbour.Cost == MAX_COST) continue;
-                
-                //Cell is already visited
-                if (neighbour.Visited) continue;
-                neighbour.Visited = true;
-
-                int newNeighbourDistance = selectedCell.Cost + 1;
-                Debug.Log($"New distance neighbour: {newNeighbourDistance}");
-
-                if (newNeighbourDistance < neighbour.Cost)
+                if (IsUnpassable(neighbour) || IsVisited(neighbour))
                 {
-                    neighbour.Cost = newNeighbourDistance;
-                    neighbour.PreviousCell = selectedCell;
+                    continue;
                 }
-                
-                neighbour.AssignHeatIntensity();
 
+                UpdateNeighbourData(selectedCell, neighbour);
                 _openCells.Enqueue(neighbour);
             }
         }
     }
+
+private bool IsUnpassable(FlowVector cell)
+{
+    return Math.Abs(cell.Cost - MAX_COST) < 0.05f;
+}
+
+private bool IsVisited(FlowVector cell)
+{
+    return cell.Visited;
+}
+
+private void UpdateNeighbourData(FlowVector selectedCell, FlowVector neighbour)
+{
+    neighbour.Visited = true;
+    float relativeDistanceToNeighbour = Vector3.Distance(selectedCell.Position, neighbour.Position);
+    float newNeighbourDistance = selectedCell.Cost + relativeDistanceToNeighbour;
+    if (newNeighbourDistance < neighbour.Cost)
+    {
+        neighbour.Cost = newNeighbourDistance;
+        neighbour.PreviousCell = selectedCell;
+    }
+    neighbour.AssignHeatIntensity();
+}
+
 
     private void ResetIntegrationValues()
     {
@@ -143,7 +163,35 @@ public class FlowFieldGenerator : MonoBehaviour
 
     private void GenerateFlowField()
     {
-        
+        foreach (var currentLoopingCell in _cellsInGrid)
+        {
+            FlowVector currentBestNeighbour = null;
+            if (currentLoopingCell.Value.NeighbourCells.Contains(_currentCell))
+            {
+                Debug.Log("Found neighbour of target node.");
+            }
+            foreach (var neighbour in currentLoopingCell.Value.NeighbourCells)
+            {
+                if (currentBestNeighbour == null)
+                {
+                    currentBestNeighbour = neighbour;
+                    continue;
+                }
+                
+                Debug.Log($"Cost of neighbour: {neighbour.Cost}");
+
+                if (neighbour.Cost < currentBestNeighbour.Cost)
+                {
+                    Debug.Log($"Found new best neighbour of node {currentLoopingCell.Value.Position}: {neighbour.Position}. Cost: {neighbour.Cost}");
+                    currentBestNeighbour = neighbour;
+                }
+            }
+            
+            Vector3 targetDirection = currentBestNeighbour.transform.position - currentLoopingCell.Value.transform.position;
+            float angle = Mathf.Atan2(targetDirection.y, targetDirection.x) * Mathf.Rad2Deg + RotationMultiplier;
+            Quaternion newRot = Quaternion.AngleAxis(angle, Vector3.forward);
+            currentLoopingCell.Value.RotateTowards(newRot, currentBestNeighbour);
+        }
     }
 
     private void CheckOnClickCell()
@@ -157,6 +205,7 @@ public class FlowFieldGenerator : MonoBehaviour
 
             if (hit.transform.TryGetComponent(out FlowVector vector))
             {
+                if (vector.Cost == MAX_COST) return;
                 if (_currentCell != null) _currentCell.OnDeselectCell();
                 
                 _currentCell = vector;
