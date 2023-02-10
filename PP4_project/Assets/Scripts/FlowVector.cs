@@ -11,7 +11,7 @@ public class FlowVector : MonoBehaviour
 {
     [Header("Properties")] 
     public Vector2Int Index;
-    public Vector2 Direction = Vector2.right;
+    public Vector2 Direction;
     public Vector2 Position;
     public Vector2 Size;
     public float Cost = int.MaxValue;
@@ -28,12 +28,6 @@ public class FlowVector : MonoBehaviour
     [SerializeField] private Sprite _directionIcon;
     [SerializeField] private SpriteRenderer _background;
     
-    private void Awake()
-    {
-        float angle = Vector2.Angle(transform.rotation.eulerAngles, Direction);
-        transform.Rotate(Vector3.forward, angle);
-    }
-
     public void OnSelectCell()
     {
         _renderer.sprite = _selectedIcon;
@@ -84,15 +78,16 @@ public class FlowVector : MonoBehaviour
         _renderer.sprite = _directionIcon;
     }
 
-    public void OnGUI()
-    {
-        Handles.color = Color.white;
-        string costValue = Cost.ToString();
-        if (Cost == int.MaxValue || Cost == 255)
-            costValue = "MAX";
-        Handles.Label(transform.position - new Vector3(0.4f, 0.3f), $"Cost: {costValue}");
-        Handles.Label(transform.position - new Vector3(0.4f, 0.15f), $"Index{Index}");
-        if(_bestNeighbour != null)
-            Handles.Label(transform.position - new Vector3(0.4f, -0.45f), $"Closest: \n{_bestNeighbour.Index}");
-    }
+    // public void OnGUI()
+    // {
+    //     Handles.color = Color.white;
+    //     string costValue = Cost.ToString();
+    //     if (Cost == int.MaxValue || Cost == 255)
+    //         costValue = "MAX";
+    //     //Handles.Label(transform.position - new Vector3(0.4f, 0.3f), $"Cost: {costValue}");
+    //     //Handles.Label(transform.position - new Vector3(0.4f, 0.15f), $"Index{Index}");
+    //     //Handles.Label(transform.position - new Vector3(0.4f, -0.45f), $"Position\n{Position}");
+    //     //if(_bestNeighbour != null)
+    //     //    Handles.Label(transform.position - new Vector3(0.4f, -0.45f), $"Closest: \n{_bestNeighbour.Index}");
+    // }
 }
