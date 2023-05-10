@@ -48,7 +48,7 @@ public class FlowVector : MonoBehaviour
     public void AssignHeatIntensity()
     {
         float redValue = 1f / Cost;
-        _background.color = new Color(redValue,0,0,1);
+        _background.color = new Color(redValue,0,0,0.8f);
     }
 
     public void RotateTowards(Quaternion pRotateToCell, FlowVector pBestNeighbour)

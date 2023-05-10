@@ -22,12 +22,14 @@ public class FlowFieldGenerator : MonoBehaviour
     private List<FlowVector> _visitedCells = new List<FlowVector>();
     private Dictionary<Vector2, FlowVector> _cellsInGrid = new Dictionary<Vector2, FlowVector>();
     private List<FlowVector> _passableCells = new List<FlowVector>();
+    private List<FlowVector> _passableFreeCells = new List<FlowVector>();
 
     private void Awake()
     {
         _cam = Camera.main;
 
         GenerateGrid();
+        _passableFreeCells = _passableCells;
     }
 
     private void Update()
@@ -43,8 +45,7 @@ public class FlowFieldGenerator : MonoBehaviour
         Vector2 index = new Vector2(xPos, yPos);
 
         _cellsInGrid.TryGetValue(index, out FlowVector vector);
-
-
+        
         if (vector == null)
             return Vector3.zero;
 
@@ -108,7 +109,9 @@ public class FlowFieldGenerator : MonoBehaviour
 
     public Vector3 GetRandomPassablePosition()
     {
-        return _passableCells.ElementAt(new Random().Next(0, _passableCells.Count)).Position;
+        FlowVector selectedCell = _passableFreeCells.ElementAt(new Random().Next(0, _passableFreeCells.Count));
+        _passableFreeCells.Remove(selectedCell);
+        return selectedCell.Position;
     }
 
     private void GenerateIntegrationField()
