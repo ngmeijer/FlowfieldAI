@@ -9,6 +9,9 @@ public class AgentProperties : ScriptableObject
     [Range(0f, 3f)]public float MaxSpeed = 2;
     public float StoppingDistance = 0.5f;
     public float RotateSpeed = 1f;
+
+    public float FlockingWeight;
+    public float DirectionWeight;
     
     [Range(1f, 5f)] public float CohesionForce = 2f;
     [Range(0f, 10f)] public float AlignmentRadius = 1f;

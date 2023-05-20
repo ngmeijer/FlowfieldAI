@@ -12,15 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b920eaabeb5641a39f04bf5253d02052, type: 3}
   m_Name: AgentProperties
   m_EditorClassIdentifier: 
-  MoveSpeed: 3
-  MaxSpeed: 1
+  MoveSpeed: 0.22
+  MaxSpeed: 1.12
   StoppingDistance: 1
   RotateSpeed: 60
-  CohesionForce: 5
-  AlignmentRadius: 1
-  AlignmentForce: 1.16
+  FlockingWeight: 1
+  DirectionWeight: 2
+  CohesionForce: 1
+  AlignmentRadius: 0.52
+  AlignmentForce: 1.13
   AlignmentDebugColor: {r: 0.24533153, g: 1, b: 0, a: 0.078431375}
-  AvoidanceRadius: 0.89
-  AvoidanceForce: 1.77
+  AvoidanceRadius: 4.94
+  AvoidanceForce: 5
   AvoidanceDebugColor: {r: 1, g: 0, b: 0, a: 0.34117648}
   ShowRadius: 0

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
+using UnityEditor;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -15,9 +16,11 @@ public class FlowAgent : MonoBehaviour
     public Color OriginalColor;
     [SerializeField] private float ColorMultiplicationFactor = 3f;
 
-    [SerializeField] private Vector3 _centerOfGroup;
     [SerializeField] private Vector3 _finalDirection;
     [SerializeField] private Vector3 _flockingVec;
+    private Vector3 _alignmentVec;
+    private Vector3 _cohesionVec;
+    private Vector3 _avoidanceVec;
     public bool CurrentlySelected;
 
     
@@ -26,8 +29,10 @@ public class FlowAgent : MonoBehaviour
         OriginalColor = _renderer.color;
     }
 
-    public void SetRandomVelocity(float xVel, float yVel)
+    public void SetRandomVelocity()
     {
+        float xVel = NumberRandomizer.GetRandomFloat(-1f, 100f);
+        float yVel = NumberRandomizer.GetRandomFloat(-1f, 1f);
         RB.velocity = new Vector3(xVel, yVel) * Properties.MoveSpeed;
     }
 
@@ -47,26 +52,29 @@ public class FlowAgent : MonoBehaviour
 
     private void FixedUpdate()
     {
-        _centerOfGroup = transform.position;
+        _alignmentVec = CalculateAlignment();
+        _cohesionVec = CalculateCohesion();
+        _avoidanceVec = CalculateSeparation();
 
-        Vector2 alignmentVec = CalculateAlignment();
-        Vector2 cohesionVec = CalculateCohesion();
-        Vector2 avoidanceVec = CalculateSeparation();
-
-        _flockingVec = (avoidanceVec * Properties.AvoidanceForce) 
-                       + (cohesionVec * Properties.CohesionForce) 
-                       + (alignmentVec * Properties.AlignmentForce);
-        _finalDirection = transform.up + _flockingVec;
+        _flockingVec = (_avoidanceVec * Properties.AvoidanceForce) + 
+                       (_cohesionVec * Properties.CohesionForce) + 
+                       (_alignmentVec * Properties.AlignmentForce);
+        _flockingVec.Normalize();
+        _finalDirection = (_flockingVec * Properties.FlockingWeight) + (CellDirection * Properties.DirectionWeight);
         _finalDirection.Normalize();
         
-        RB.velocity = _finalDirection * (Properties.MoveSpeed * Time.fixedDeltaTime);
         Debug.DrawRay(transform.position, _finalDirection, Color.magenta);
+        Debug.DrawRay(transform.position, transform.up, Color.yellow);
+
+        float moveSpeed = Properties.MoveSpeed * Time.fixedDeltaTime;
+        Vector3 movement = _finalDirection * moveSpeed;
+        RB.MovePosition(transform.position + movement);
     }
 
     private void LookAtTarget()
     {
         float angle = Mathf.Atan2(CellDirection.y, CellDirection.x) * Mathf.Rad2Deg;
-        Quaternion targetRotation = Quaternion.AngleAxis(angle, Vector3.forward);
+        Quaternion targetRotation = Quaternion.AngleAxis(angle, _finalDirection);
         Quaternion rotateTowards = Quaternion.RotateTowards(transform.rotation, targetRotation,
             Properties.RotateSpeed * Time.deltaTime);
         transform.rotation = rotateTowards;
@@ -74,12 +82,12 @@ public class FlowAgent : MonoBehaviour
 
     private void GetClosestAgents()
     {
-        _neighbourAgents = AIManager.Instance.GetNeighbours(this);
-        _neighbourCount = _neighbourAgents.Count;
+        // _neighbourAgents = AIManager.Instance.GetNeighbours(this);
+        // _neighbourCount = _neighbourAgents.Count;
 
         foreach (var neighbour in _neighbourAgents)
         {
-            Debug.DrawLine(transform.position, neighbour.transform.position, Color.green);
+            Debug.DrawLine(transform.position, neighbour.transform.position, Color.grey);
         }
 
         float dynamicChannelStrength = ((float)_neighbourCount / AIManager.Instance.TotalAgentCount)* ColorMultiplicationFactor;
@@ -91,7 +99,7 @@ public class FlowAgent : MonoBehaviour
 
     private Vector3 CalculateAlignment()
     {
-        Vector3 alignmentVec = transform.up;
+        Vector3 alignmentVec = RB.velocity;
         if (_neighbourCount == 0)
         {
             return alignmentVec;
@@ -99,15 +107,16 @@ public class FlowAgent : MonoBehaviour
 
         foreach (var neighbour in _neighbourAgents)
         {
-            alignmentVec += neighbour.transform.up; 
+            alignmentVec += neighbour.RB.velocity; 
         }
 
-        alignmentVec /= _neighbourCount + 1;
+        alignmentVec /= _neighbourCount;
+        Debug.DrawRay(transform.position, alignmentVec, Color.blue);
 
         return alignmentVec;
     }
 
-    private Vector2 CalculateCohesion()
+    private Vector3 CalculateCohesion()
     {
         Vector3 cohesionVec = transform.position;
 
@@ -119,16 +128,14 @@ public class FlowAgent : MonoBehaviour
             cohesionVec += neighbour.transform.position; 
         }
         
-        cohesionVec /= (_neighbourCount + 1);
-        _centerOfGroup = cohesionVec;
-
-        Debug.DrawLine(transform.position, _centerOfGroup, Color.white);
+        cohesionVec /= _neighbourCount;
         cohesionVec -= transform.position;
+        Debug.DrawLine(transform.position, cohesionVec, Color.green);
 
         return cohesionVec;
     }
 
-    private Vector2 CalculateSeparation()
+    private Vector3 CalculateSeparation()
     {
         Vector3 avoidanceVec = Vector3.zero;
 
@@ -140,7 +147,6 @@ public class FlowAgent : MonoBehaviour
         foreach (var neighbour in _neighbourAgents)
         {
             float distance = Vector3.Distance(transform.position, neighbour.transform.position);
-
             if (distance >= Properties.AvoidanceRadius)
                 continue;
             
@@ -148,9 +154,9 @@ public class FlowAgent : MonoBehaviour
         }
         
         //Shows direction to move in
-        Debug.DrawRay(transform.position + avoidanceVec.normalized * 0.1f, avoidanceVec.normalized * 0.3f, Color.green);
+        Debug.DrawRay(transform.position, avoidanceVec.normalized * 0.3f, Color.red);
 
-        avoidanceVec /= _neighbourCount + 1;
+        avoidanceVec /= _neighbourCount;
 
         return avoidanceVec;
     }
@@ -162,8 +168,13 @@ public class FlowAgent : MonoBehaviour
 
     private void OnDrawGizmos()
     {
+        Handles.Label(transform.position + transform.up, "Up vector");
+        Handles.Label(transform.position + _finalDirection, "Final direction");
+        Handles.Label(transform.position + _avoidanceVec, "Avoidance");
+        Handles.Label(transform.position + _alignmentVec, "Alignment");
+        
         Gizmos.color = Color.white;
-        Gizmos.DrawSphere(_centerOfGroup, 0.05f);
+        Gizmos.DrawSphere(_cohesionVec, 0.05f);
         
         if (!Properties.ShowRadius) return;
         
@@ -180,11 +191,20 @@ public class FlowAgent : MonoBehaviour
         {
             SetColor(Color.yellow);
             CurrentlySelected = true;
+            Debug.Log($"Flocking vec: {_flockingVec}");
         }
         else
         {
             SetColor(OriginalColor);
             CurrentlySelected = false;
         }
+    }
+}
+
+public static class NumberRandomizer
+{
+    public static float GetRandomFloat(float min, float max)
+    {
+        return Random.Range(min, max);
     }
 }
