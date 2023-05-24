@@ -269,8 +269,11 @@ MonoBehaviour:
   _randomChance: 0.6
   _selectedAgentIndex: 0
   _currentAgent: {fileID: 0}
-  _availableColours:
-  - {r: 0, g: 0, b: 0, a: 0}
+  _showAlignment: 0
+  _showCohesion: 0
+  _showAvoidance: 1
+  _showUpVector: 0
+  _showFinalDirection: 0
 --- !u!4 &384837873
 Transform:
   m_ObjectHideFlags: 0
