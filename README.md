@@ -10,7 +10,7 @@ To increase performance even more, the level could be divided into an octree, de
 [Project demonstration](https://www.youtube.com/watch?v=6RQRLQWzzUk&t=5s)
 
 Here, you can see a flowfield without any calculations applied to it and AI agents placed on random cells.
-![image](https://github.com/ngmeijer/FlowfieldAI/assets/58357808/e788b1c3-1c36-4448-aa34-3fcb3621ab69)
+<img src="https://github.com/ngmeijer/FlowfieldAI/assets/58357808/e788b1c3-1c36-4448-aa34-3fcb3621ab69" width="300" height="300">
 
 Now you can see the direction of each cell. When an agent collides with a cell, it requests that direction and applies that vector to its own velocity. This means an agent does not need to calculate its own path, but rather just "follows the arrows on the ground".
-![image](https://github.com/ngmeijer/FlowfieldAI/assets/58357808/7df3a520-6f18-48df-b320-e47be9bc51f1)
+<img src="https://github.com/ngmeijer/FlowfieldAI/assets/58357808/7df3a520-6f18-48df-b320-e47be9bc51f1" width="300" height="300">
