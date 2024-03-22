@@ -7,6 +7,7 @@ I was curious about how the AI pathfinding worked for that game, since it looked
 
 To increase performance even more, the level could be divided into an octree, depending on the location of enemies so that we don't waste resources on empty cells.
 
+Please refer to [the project wiki](https://github.com/ngmeijer/FlowfieldAI/wiki) to read some of the code snippets.
 [Project demonstration](https://www.youtube.com/watch?v=6RQRLQWzzUk&t=5s)
 
 Here, you can see a flowfield without any calculations applied to it and AI agents placed on random cells.
